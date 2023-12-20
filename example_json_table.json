@@ -1,46 +1,26 @@
 {
   "forecast&Localization": {
     "localization": {
-      "Key": "101924",
-      "Type": "City",
-      "Rank": 10,
-      "LocalizedName": "Beijing",
-      "EnglishName": "Beijing",
-      "PrimaryPostalCode": "",
-      "Region": { "ID": "ASI", "LocalizedName": "Asia", "EnglishName": "Asia" },
-      "Country": {
-        "ID": "CN",
-        "LocalizedName": "China",
-        "EnglishName": "China"
-      },
-      "AdministrativeArea": {
-        "ID": "BJ",
-        "LocalizedName": "Beijing",
-        "EnglishName": "Beijing",
-        "Level": 1,
-        "LocalizedType": "Municipality",
-        "EnglishType": "Municipality",
-        "CountryID": "CN"
-      },
-      "TimeZone": {
-        "Code": "CST",
-        "Name": "Asia/Shanghai",
-        "GmtOffset": 8.0,
-        "IsDaylightSaving": false
-      },
-      "Latitude": 39.917,
-      "Longitude": 116.407,
-      "Elevation": "62.0m|203.0ft"
+      "key": "101924",
+      "type": "City",
+      "rank": 10,
+      "city": "Beijing",
+      "region": "Asia",
+      "country": "China",
+      "timeZone": "CST - 8.0",
+      "latitude": 39.917,
+      "longitude": 116.407,
+      "elevation": "62.0m/203.0ft"
     },
     "foreCastData": {
-      "Date": "2023-12-06T07:00:00+08:00",
-      "MinimumTemperature": "27.0F",
-      "MaximumTemperature": "48.0F",
-      "DayPhrase": "Partly sunny",
-      "DayHasPrecipitation": false,
-      "NightPhrase": "Partly cloudy",
-      "NightHasPrecipitation": false
-    },
-    "date": "2023-12-06T07:00:00+08:00"
+      "key": "101924",
+      "date": "2023-12-06T07:00:00+08:00",
+      "minimumTemperature": "27.0F",
+      "maximumTemperature": "48.0F",
+      "dayPhrase": "Partly sunny",
+      "dayHasPrecipitation": false,
+      "nightPhrase": "Partly cloudy",
+      "nightHasPrecipitation": false
+    }
   }
 }

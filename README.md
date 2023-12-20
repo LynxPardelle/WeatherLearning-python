@@ -11,8 +11,9 @@
 - Se ha creado un archivo main.py para ejecutar el código.
 
 - Se ha creado un archivo requirements.txt para instalar las dependencias.
+  - pip freeze > requirements.txt 
   - pip install -r "./requirements.txt"
 
-- Se ha creado un archivo secrets.py para almacenar la API Key.
+- Se ha creado un archivo my_secrets.py para almacenar la API Key y la información para acceder a la BDD.
 
-- Se ha creado un archivo .gitignore para ignorar el archivo secrets.py
+- Se ha creado un archivo .gitignore para ignorar el archivo my_secrets.py

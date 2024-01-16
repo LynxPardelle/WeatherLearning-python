@@ -1,5 +1,7 @@
 # WeatherLearning-python
 
+## Entrega 1 & 2
+
 - Se ha creado un repositorio en GitHub para almacenar el proyecto.
 
 - Se ha creado un archivo README.md para documentar el proyecto.
@@ -17,3 +19,13 @@
 - Se ha creado un archivo my_secrets.py para almacenar la API Key y la información para acceder a la BDD.
 
 - Se ha creado un archivo .gitignore para ignorar el archivo my_secrets.py
+
+## Entrega 3
+
+- Se ha creado un archivo docker-compose.yml para crear el contenedor de Docker. [New docker-compose.yaml](https://airflow.apache.org/docs/apache-airflow/2.8.0/docker-compose.yaml)
+- Se ha creado ETCL_Weather.py en dags para crear el DAG.
+- Se ha pasado el código de main.py a ETCL_Weather.py y se ha modificado para que funcione con Airflow.
+- Se ha agregado keys al gitignore.
+- Se requiere ejecutar el siguiente comando para activar el docker-compose.yml:
+  - docker-compose up
+- Ahora se puede ejecutar el DAG desde Airflow en localhost:8080

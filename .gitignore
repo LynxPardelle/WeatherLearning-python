@@ -161,3 +161,7 @@ cython_debug/
 
 *my_secrets.py
 */my_secrets.py
+*keys/
+*/keys/
+*logs/*
+*/logs/*

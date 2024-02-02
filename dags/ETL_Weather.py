@@ -130,83 +130,6 @@ def extract_data(exec_date):
 # Transform Data Function
 
 
-def checkForTresholds(ti, data, date):
-    try:
-        thresholds = Variable.get("thresholds", deserialize_json=True)
-        print('thresholds', thresholds)
-        print('type', type(thresholds))
-        if thresholds and isinstance(thresholds, list) and len(thresholds) > 0:
-            for threshold in thresholds:
-                property = threshold.get('property')
-                evaluation = threshold.get('evaluation')
-                value = threshold.get('value')
-                if property and evaluation and value:
-                    if property in data.get('foreCastData'):
-                        thresholdsPassed = []
-                        propertyValue = data.get('foreCastData').get(property)
-                        propertyIntoInt = int(
-                            float(propertyValue.replace('F', '')))
-                        if evaluation == '<':
-                            if propertyIntoInt < value:
-                                thresholdsPassed.append(
-                                    f'{property} < {value}')
-                        elif evaluation == '<=':
-                            if propertyIntoInt <= value:
-                                thresholdsPassed.append(
-                                    f'{property} <= {value}')
-                        elif evaluation == '>':
-                            if propertyIntoInt > value:
-                                thresholdsPassed.append(
-                                    f'{property} > {value}')
-                        elif evaluation == '>=':
-                            if propertyIntoInt >= value:
-                                thresholdsPassed.append(
-                                    f'{property} >= {value}')
-                        elif evaluation == 'equal':
-                            if propertyValue == value:
-                                thresholdsPassed.append(
-                                    f'{property} == {value}')
-                        elif evaluation == 'notequal':
-                            if propertyValue != value:
-                                thresholdsPassed.append(
-                                    f'{property} != {value}')
-                        elif evaluation == 'contains':
-                            if value in propertyValue:
-                                thresholdsPassed.append(
-                                    f'{property} contains {value}')
-                        elif evaluation == 'notcontains':
-                            if value not in propertyValue:
-                                thresholdsPassed.append(
-                                    f'{property} not contains {value}')
-                        print('thresholdsPassed', thresholdsPassed)
-                        if len(thresholdsPassed) > 0:
-                            file2Create = dag_path+'/treshold_data/'+"data_"+str(date.year)+'-' + \
-                                str(date.month)+'-'+str(date.day) + \
-                                '-'+str(date.hour)+".json"
-                            print('file2Create', file2Create)
-                            with open(file2Create, 'w') as json_file:
-                                print('data', data)
-                                json.dump(data, json_file)
-                                print('Data saved!')
-                                ti.xcom_push(key='thresholdsPassed',
-                                             value=thresholdsPassed)
-                                print('thresholds in XCOM:', thresholdsPassed)
-                    else:
-                        raise Exception(
-                            f"La propiedad {property} no existe en el objeto foreCastData")
-                else:
-                    raise Exception(
-                        "Faltan propiedades en el objeto threshold")
-        else:
-            raise Exception("No hay thresholds definidos")
-    except ValueError as e:
-        print("Error in value al obtener thresholds", e)
-        # raise e
-    except Exception as e:
-        print("Error al obtener thresholds", e)
-        # raise e
-
-
 def transform_data(ti, **kwargs):
     exec_date = kwargs.get('exec_date')
     print(f"Transformando la data para la fecha: {exec_date}")
@@ -241,7 +164,142 @@ def transform_data(ti, **kwargs):
         }
         with open(dag_path+'/processed_data/'+"data_"+str(date.year)+'-'+str(date.month)+'-'+str(date.day)+'-'+str(date.hour)+".json", "w") as json_file:
             json.dump(fore_cast_and_localization, json_file)
-        checkForTresholds(ti, fore_cast_and_localization, date)
+
+
+# Check for tresholds Function
+
+
+def check_for_tresholds(ti, **kwargs):
+    try:
+        exec_date = kwargs.get('exec_date')
+        print(f"Enviando correo de alerta para la fecha: {exec_date}")
+        date = datetime.strptime(exec_date, '%Y-%m-%d %H')
+        with open(dag_path+'/processed_data/'+"data_"+str(date.year)+'-'+str(date.month)+'-'+str(date.day)+'-'+str(date.hour)+".json", "r") as json_file:
+            data = json.load(json_file)
+            print('data', data)
+            thresholds = Variable.get("thresholds", deserialize_json=True)
+            print('thresholds', thresholds)
+            print('type', type(thresholds))
+            if thresholds and isinstance(thresholds, list) and len(thresholds) > 0:
+                for threshold in thresholds:
+                    property = threshold.get('property')
+                    evaluation = threshold.get('evaluation')
+                    value = threshold.get('value')
+                    if property and evaluation and value:
+                        if property in data.get('foreCastData'):
+                            thresholdsPassed = []
+                            propertyValue = data.get(
+                                'foreCastData').get(property)
+                            propertyIntoInt = int(
+                                float(propertyValue.replace('F', '')))
+                            if evaluation == '<':
+                                if propertyIntoInt < value:
+                                    thresholdsPassed.append(
+                                        f'{property} < {value}')
+                            elif evaluation == '<=':
+                                if propertyIntoInt <= value:
+                                    thresholdsPassed.append(
+                                        f'{property} <= {value}')
+                            elif evaluation == '>':
+                                if propertyIntoInt > value:
+                                    thresholdsPassed.append(
+                                        f'{property} > {value}')
+                            elif evaluation == '>=':
+                                if propertyIntoInt >= value:
+                                    thresholdsPassed.append(
+                                        f'{property} >= {value}')
+                            elif evaluation == 'equal':
+                                if propertyValue == value:
+                                    thresholdsPassed.append(
+                                        f'{property} == {value}')
+                            elif evaluation == 'notequal':
+                                if propertyValue != value:
+                                    thresholdsPassed.append(
+                                        f'{property} != {value}')
+                            elif evaluation == 'contains':
+                                if value in propertyValue:
+                                    thresholdsPassed.append(
+                                        f'{property} contains {value}')
+                            elif evaluation == 'notcontains':
+                                if value not in propertyValue:
+                                    thresholdsPassed.append(
+                                        f'{property} not contains {value}')
+                            print('thresholdsPassed', thresholdsPassed)
+                            if len(thresholdsPassed) > 0:
+                                ti.xcom_push(key='thresholdsPassed',
+                                             value=thresholdsPassed)
+                                print('thresholds in XCOM:', thresholdsPassed)
+                        else:
+                            raise Exception(
+                                f"La propiedad {property} no existe en el objeto foreCastData")
+                    else:
+                        raise Exception(
+                            "Faltan propiedades en el objeto threshold")
+            else:
+                raise Exception("No hay thresholds definidos")
+    except ValueError as e:
+        print("Error in value al obtener thresholds", e)
+        # raise e
+    except Exception as e:
+        print("Error al obtener thresholds", e)
+        # raise e
+
+
+# Report Treshold Email Function
+
+
+def report_treshold_email(ti, **kwargs):
+    try:
+        exec_date = kwargs.get('exec_date')
+        print(f"Enviando correo de alerta para la fecha: {exec_date}")
+        date = datetime.strptime(exec_date, '%Y-%m-%d %H')
+        with open(dag_path+'/processed_data/'+"data_"+str(date.year)+'-'+str(date.month)+'-'+str(date.day)+'-'+str(date.hour)+".json", "r") as json_file:
+            data = json.load(json_file)
+            print('data', data)
+            thresholdsPassed = ti.xcom_pull(
+                key="thresholdsPassed", task_ids="check_for_tresholds")
+            print('thresholdsPassed', thresholdsPassed)
+            print('type', type(thresholdsPassed))
+            if (thresholdsPassed != None and isinstance(thresholdsPassed, list) and len(thresholdsPassed) > 0):
+                thresholdsPassed = [str(x) for x in thresholdsPassed]
+                print('thresholdsPassed1', thresholdsPassed)
+                thresholdsPassed = ', '.join(thresholdsPassed)
+                print('thresholdsPassed2', thresholdsPassed)
+                dataParsed = 'localization: '+str(data.get('localization')) + \
+                    ', key: '+str(data.get('localization').get('key')) + \
+                    ', type: '+str(data.get('localization').get('type')) + \
+                    ', rank: '+str(data.get('localization').get('rank')) + \
+                    ', city: '+str(data.get('localization').get('city')) + \
+                    ', region: '+str(data.get('localization').get('region')) + \
+                    ', country: '+str(data.get('localization').get('country')) + \
+                    ', timezone: '+str(data.get('localization').get('timezone')) + \
+                    ', latitude: '+str(data.get('localization').get('latitude')) + \
+                    ', longitude: '+str(data.get('localization').get('longitude')) + \
+                    ', elevation: '+str(data.get('localization').get('elevation')) + \
+                    ', foreCastData: '+str(data.get('foreCastData')) + \
+                    ', key: '+str(data.get('foreCastData').get('key')) + \
+                    ', date: '+str(data.get('foreCastData').get('date')) + \
+                    ', minimum_temperature: '+str(data.get('foreCastData').get('minimum_temperature')) + \
+                    ', maximum_temperature: '+str(data.get('foreCastData').get('maximum_temperature')) + \
+                    ', day_phrase: '+str(data.get('foreCastData').get('day_phrase')) + \
+                    ', day_has_precipitation: '+str(data.get('foreCastData').get('day_has_precipitation')) + \
+                    ', night_phrase: '+str(data.get('foreCastData').get('night_phrase')) + \
+                    ', night_has_precipitation: ' + \
+                    str(data.get('foreCastData').get('night_has_precipitation'))
+                print('dataParsed', dataParsed)
+                subject = 'Alerta de umbrales para la fecha: '+exec_date + \
+                    f', en la ciudad de {data.get("localization").get("city")}'
+                body_text = 'Los umbrales que se han pasado son: ' + \
+                    thresholdsPassed+'.Más infomración sobre la data: ' + dataParsed
+                print('subject', subject)
+                print('body_text', body_text)
+                send_email(exec_date, subject, body_text)
+            else:
+                print('No thresholds passed')
+    except Exception as error:
+        print('Error while reporting the successful load', error)
+        raise Exception("Error while reporting the successful load:", error)
+
 
 # Redshift Connection Function
 
@@ -520,7 +578,7 @@ def send_email(exec_date, subject, body_text):
             email_server.quit()
     except Exception as error:
         print('Error while sending email', error)
-        raise Exception("Error while sending email: ", error)
+        # raise Exception("Error while sending email: ", error)
 
 
 def report_successful_load(exec_date):
@@ -534,32 +592,7 @@ def report_successful_load(exec_date):
         raise Exception("Error while reporting the successful load:", error)
 
 
-def send_treshold_email(ti, **kwargs):
-    try:
-        exec_date = kwargs.get('exec_date')
-        print(f"Enviando correo de alerta para la fecha: {exec_date}")
-        date = datetime.strptime(exec_date, '%Y-%m-%d %H')
-        with open(dag_path+'/treshold_data/'+"data_"+str(date.year)+'-'+str(date.month)+'-'+str(date.day)+'-'+str(date.hour)+".json", "r") as json_file:
-            data = json.load(json_file)
-            thresholdsPassed = ti.xcom_pull(
-                key="thresholdsPassed", task_ids="transform_data")
-            subject = 'Alerta de umbrales para la fecha: '+exec_date + \
-                ', en la ciudad de {data.get("localization").get("city")}'
-            body_text = 'Los umbrales que se han pasado son: ' + \
-                ', '.join(thresholdsPassed)+'.Más infomración sobre la data: ' + \
-                [f'{key}: {value}' for key, value in data]
-            send_email(exec_date, subject, body_text)
-    except Exception as error:
-        print('Error while reporting the successful load', error)
-        raise Exception("Error while reporting the successful load:", error)
-
-
 # Tareas
-# 0. Start in paralell
-task_start = BashOperator(
-    task_id='start',
-    bash_command='date'
-)
 # 1. Extraction
 task_1 = PythonOperator(
     task_id='extract_data',
@@ -569,17 +602,34 @@ task_1 = PythonOperator(
 )
 
 # 2. Transformacion
-task_2 = PythonOperator(
+# 2.1 Transformacion de data
+task_2_1 = PythonOperator(
     task_id='transform_data',
     python_callable=transform_data,
     op_kwargs={'exec_date': "{{ ds }} {{ execution_date.hour }}"},
     dag=BC_dag,
     do_xcom_push=True,
 )
+# 2.2 Revisión de tresholds
+task_2_2 = PythonOperator(
+    task_id='check_for_tresholds',
+    python_callable=check_for_tresholds,
+    op_kwargs={'exec_date': "{{ ds }} {{ execution_date.hour }}"},
+    dag=BC_dag,
+    do_xcom_push=True,
+)
+
+# 2.3 Envio de correo de tresholds
+task_2_3 = PythonOperator(
+    task_id="report_treshold_email",
+    python_callable=report_treshold_email,
+    op_kwargs={'exec_date': "{{ ds }} {{ execution_date.hour }}"},
+    dag=BC_dag
+)
 
 # 3. Envio de data
 # 3.1 Conexion a base de datos
-task_31 = PythonOperator(
+task_3_1 = PythonOperator(
     task_id="redshift_conexion",
     python_callable=redshift_conexion,
     op_args=["{{ ds }} {{ execution_date.hour }}"],
@@ -587,7 +637,7 @@ task_31 = PythonOperator(
 )
 
 # 3.2 Envio final
-task_32 = PythonOperator(
+task_3_2 = PythonOperator(
     task_id='load_data',
     python_callable=load_data,
     op_args=["{{ ds }} {{ execution_date.hour }}"],
@@ -601,25 +651,7 @@ task_4 = PythonOperator(
     op_args=["{{ ds }} {{ execution_date.hour }}"],
     dag=BC_dag,
 )
-# s1 Sensor de archivos
-task_s1 = FileSensor(
-    task_id="file_sensor",
-    poke_interval=60,
-    timeout=60 * 30,
-    filepath=dag_path+'/treshold_data/data_*.json',
-    dag=BC_dag
-)
-
-# t1 Enviar correo de alerta
-task_t1 = PythonOperator(
-    task_id="send_treshold_email",
-    python_callable=send_treshold_email,
-    op_kwargs={'exec_date': "{{ ds }} {{ execution_date.hour }}"},
-    dag=BC_dag
-)
 
 # Definicion orden de tareas
-task_start >> [
-    task_1 >> task_2 >> task_31 >> task_32 >> task_4,
-    task_s1 >> task_t1
-]
+
+task_1 >> task_2_1 >> task_2_2 >> task_2_3 >> task_3_1 >> task_3_2 >> task_4
